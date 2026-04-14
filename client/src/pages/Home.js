@@ -1,16 +1,18 @@
 import React, { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import {  FaCalendar, FaUsers, FaTrophy } from "react-icons/fa";
 import { GiShuttlecock } from "react-icons/gi";
 
 export const Home = () => {
-  const { user } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) {
+    return null;
+  }
 
   if (user) {
-    navigate("/dashboard");
-    return null;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
@@ -31,9 +33,10 @@ export const Home = () => {
               fontSize: "3rem",
               marginBottom: "20px",
               fontWeight: "bold",
+              color: "var(--accent-color)",
             }}
           >
-            Welcome to BadmintonHub
+            Welcome to SmashSlot
           </h1>
           <p style={{ fontSize: "1.3rem", marginBottom: "30px", opacity: 0.9 }}>
             Book courts, find partners, and play badminton like never before
@@ -76,7 +79,7 @@ export const Home = () => {
             fontSize: "2.5rem",
           }}
         >
-          Why Choose BadmintonHub?
+          Why Choose SmashSlot?
         </h2>
 
         <div className="grid grid-3">
@@ -160,7 +163,7 @@ export const Home = () => {
         }}
       >
         <div className="container">
-          <p>&copy; 2024 BadmintonHub. All rights reserved.</p>
+          <p>&copy; 2024 SmashSlot. All rights reserved.</p>
           <div
             style={{
               marginTop: "15px",

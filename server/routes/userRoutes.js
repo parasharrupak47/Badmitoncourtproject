@@ -1,12 +1,81 @@
 const express = require("express");
+const multer = require("multer");
 const User = require("../models/User");
 const Booking = require("../models/Booking");
+const { uploadFile } = require("../services/storage.services");
 const {
   authMiddleware,
   staffMiddleware,
 } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+
+// Find nearby users for booking
+router.get("/search/nearby", authMiddleware, async (req, res) => {
+  try {
+    const { level, gender, gameType } = req.query;
+    const filter = { _id: { $ne: req.user.id } };
+
+    if (level) filter.level = level;
+    if (gender) filter.gender = gender;
+
+    const nearbyPlayers = await User.find(filter).select("-password").limit(20);
+    res.json(nearbyPlayers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Upload user profile image
+router.put(
+  "/:id/profile-image",
+  authMiddleware,
+  upload.single("profileImage"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      if (
+        id !== req.user.id &&
+        req.user.role !== "admin" &&
+        req.user.role !== "staff"
+      ) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "Profile image is required" });
+      }
+
+      const result = await uploadFile(
+        req.file.buffer.toString("base64"),
+        `${req.file.originalname}`,
+        "/smashslot/profile",
+      );
+
+      console.log("Uploaded image URL:", result);
+
+      const user = await User.findByIdAndUpdate(
+        id,
+        { profileImage: result },
+        { new: true },
+      ).select("-password");
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({
+        message: "Profile image uploaded successfully",
+        profileImage: result,
+        user,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+);
 
 // Get all users (staff only)
 router.get("/", staffMiddleware, async (req, res) => {
@@ -57,7 +126,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
     const updates = {};
 
     allowedUpdates.forEach((field) => {
-      if (req.body[field]) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
         updates[field] = req.body[field];
       }
     });
@@ -125,22 +194,6 @@ router.put("/:id/match-result", staffMiddleware, async (req, res) => {
     ).select("-password");
 
     res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Find nearby users for booking
-router.get("/search/nearby", authMiddleware, async (req, res) => {
-  try {
-    const { level, gender, gameType } = req.query;
-    const filter = { _id: { $ne: req.user.id } };
-
-    if (level) filter.level = level;
-    if (gender) filter.gender = gender;
-
-    const nearbyPlayers = await User.find(filter).select("-password").limit(20);
-    res.json(nearbyPlayers);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

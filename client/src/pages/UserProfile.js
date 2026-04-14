@@ -1,27 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useContext, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { usersAPI, statsAPI } from "../services/api";
-import { FaTrophy, FaGamepad, FaEdit } from "react-icons/fa";
+import { FaEdit, FaCamera } from "react-icons/fa";
+import { AuthContext } from "../context/AuthContext";
 
 export const UserProfile = () => {
   const { id } = useParams();
+  const { user: currentUser } = useContext(AuthContext);
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({ name: "", bio: "" });
 
-  useEffect(() => {
-    fetchUserData();
-  }, [id]);
+  const canEditProfile =
+    currentUser &&
+    (currentUser.id === id ||
+      currentUser.role === "staff" ||
+      currentUser.role === "admin");
 
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       setLoading(true);
       const userRes = await usersAPI.getUser(id);
       setUser(userRes.data);
-      setFormData(userRes.data);
+      setFormData({
+        name: userRes.data.name || "",
+        bio: userRes.data.bio || "",
+      });
 
       const statsRes = await statsAPI.getUserStatistics(id);
       setStats(statsRes.data);
@@ -32,7 +41,11 @@ export const UserProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
 
   const handleChange = (e) => {
     setFormData({
@@ -43,12 +56,49 @@ export const UserProfile = () => {
 
   const handleSave = async () => {
     try {
-      await usersAPI.updateUserProfile(id, formData);
-      setUser(formData);
+      setSaving(true);
+      const payload = {
+        name: formData.name.trim(),
+        bio: formData.bio,
+      };
+
+      if (!payload.name) {
+        setError("Name is required");
+        return;
+      }
+
+      const res = await usersAPI.updateUserProfile(id, payload);
+      setUser(res.data);
+      setFormData({
+        name: res.data.name || "",
+        bio: res.data.bio || "",
+      });
       setIsEditing(false);
+      setError("");
       alert("Profile updated successfully!");
     } catch (err) {
       setError("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleProfileImageUpload = async (e) => {
+    try {
+      const file = e.target.files?.[0];
+      if (!file) {
+        return;
+      }
+
+      setUploadingImage(true);
+      const res = await usersAPI.uploadProfileImage(id, file);
+      setUser(res.data.user);
+      setError("");
+    } catch (err) {
+      setError("Failed to upload profile picture");
+    } finally {
+      setUploadingImage(false);
+      e.target.value = "";
     }
   };
 
@@ -81,20 +131,69 @@ export const UserProfile = () => {
     <div className="container">
       {/* Profile Header */}
       <div className="profile-header">
-        <div
-          style={{
-            width: "150px",
-            height: "150px",
-            borderRadius: "50%",
-            backgroundColor: levelColors[user.level] || "#bbb",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            fontSize: "3rem",
-          }}
-        >
-          👤
+        <div style={{ position: "relative" }}>
+          {user.profileImage ? (
+            <img
+              src={user.profileImage}
+              alt={`${user.name} profile`}
+              style={{
+                width: "150px",
+                height: "150px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: `4px solid ${levelColors[user.level] || "#bbb"}`,
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: "150px",
+                height: "150px",
+                borderRadius: "50%",
+                backgroundColor: levelColors[user.level] || "#bbb",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                fontSize: "3rem",
+              }}
+            >
+              👤
+            </div>
+          )}
+
+          {canEditProfile && (
+            <label
+              htmlFor="profile-image-upload"
+              style={{
+                position: "absolute",
+                right: "4px",
+                bottom: "4px",
+                width: "38px",
+                height: "38px",
+                borderRadius: "50%",
+                backgroundColor: "var(--primary-color)",
+                color: "white",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: uploadingImage ? "not-allowed" : "pointer",
+                opacity: uploadingImage ? 0.7 : 1,
+              }}
+              title="Upload profile picture"
+            >
+              <FaCamera />
+            </label>
+          )}
+
+          <input
+            id="profile-image-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleProfileImageUpload}
+            disabled={!canEditProfile || uploadingImage}
+            style={{ display: "none" }}
+          />
         </div>
         <div className="profile-info">
           <h2>{user.name}</h2>
@@ -105,23 +204,29 @@ export const UserProfile = () => {
             {user.level}
           </span>
           <p style={{ marginTop: "15px" }}>{user.bio || "No bio added yet"}</p>
+          {uploadingImage && (
+            <p style={{ marginTop: "10px", color: "var(--light-text)" }}>
+              Uploading image...
+            </p>
+          )}
           {isEditing ? (
             <button
               className="btn btn-secondary"
               onClick={handleSave}
+              disabled={saving}
               style={{ marginTop: "15px" }}
             >
-              Save Profile
+              {saving ? "Saving..." : "Save Profile"}
             </button>
-          ) : (
+          ) : canEditProfile ? (
             <button
               className="btn btn-outline"
               onClick={() => setIsEditing(true)}
-              style={{ marginTop: "15px" }}
+              style={{ marginTop: "15px", color: "var(--accent-color)" }}
             >
               <FaEdit /> Edit Profile
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -156,34 +261,9 @@ export const UserProfile = () => {
             <input
               type="text"
               name="name"
-              value={formData.name}
+              value={formData.name || ""}
               onChange={handleChange}
             />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Phone</label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone || ""}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Level</label>
-              <select
-                name="level"
-                value={formData.level}
-                onChange={handleChange}
-              >
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </div>
           </div>
 
           <div className="form-group">
@@ -198,14 +278,22 @@ export const UserProfile = () => {
           </div>
 
           <div style={{ display: "flex", gap: "10px" }}>
-            <button className="btn btn-secondary" onClick={handleSave}>
-              Save Changes
+            <button
+              className="btn btn-secondary"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? "Saving..." : "Save Changes"}
             </button>
             <button
               className="btn btn-outline"
+              disabled={saving}
               onClick={() => {
                 setIsEditing(false);
-                setFormData(user);
+                setFormData({
+                  name: user.name || "",
+                  bio: user.bio || "",
+                });
               }}
             >
               Cancel

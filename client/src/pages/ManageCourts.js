@@ -10,6 +10,10 @@ export const ManageCourts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [editingCourtId, setEditingCourtId] = useState(null);
+  const [existingImages, setExistingImages] = useState([]);
+  const [removedImages, setRemovedImages] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     location: "",
@@ -52,18 +56,37 @@ export const ManageCourts = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const courtData = {
-        ...formData,
-        amenities: formData.amenities
-          .split(",")
-          .map((item) => item.trim())
-          .filter((item) => item),
-      };
+      const courtData = new FormData();
+      courtData.append("name", formData.name);
+      courtData.append("location", formData.location);
+      courtData.append("address", formData.address);
+      courtData.append("courtNumber", formData.courtNumber);
+      courtData.append("surface", formData.surface);
+      courtData.append("capacity", String(formData.capacity));
+      courtData.append("amenities", formData.amenities);
+      courtData.append("hourlyRate", String(formData.hourlyRate));
+      courtData.append("description", formData.description);
 
-      await courtsAPI.createCourt(courtData);
+      if (editingCourtId) {
+        selectedImages.forEach((image) => {
+          courtData.append("newImages", image);
+        });
+        courtData.append("removedImages", JSON.stringify(removedImages));
+        await courtsAPI.updateCourt(editingCourtId, courtData);
+      } else {
+        selectedImages.forEach((image) => {
+          courtData.append("images", image);
+        });
+        await courtsAPI.createCourt(courtData);
+      }
+
       setError("");
-      alert("Court created successfully!");
+      alert(editingCourtId ? "Court updated successfully!" : "Court created successfully!");
       setShowForm(false);
+      setEditingCourtId(null);
+      setExistingImages([]);
+      setRemovedImages([]);
+      setSelectedImages([]);
       setFormData({
         name: "",
         location: "",
@@ -79,6 +102,57 @@ export const ManageCourts = () => {
     } catch (err) {
       setError("Failed to create court: " + err.response?.data?.message);
     }
+  };
+
+  const handleImageSelection = (e) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedImages(files);
+  };
+
+  const handleEdit = (court) => {
+    setShowForm(true);
+    setEditingCourtId(court._id);
+    setExistingImages(court.images || []);
+    setRemovedImages([]);
+    setSelectedImages([]);
+    setFormData({
+      name: court.name || "",
+      location: court.location || "",
+      address: court.address || "",
+      courtNumber: court.courtNumber || "",
+      surface: court.surface || "synthetic",
+      capacity: court.capacity || 4,
+      amenities: Array.isArray(court.amenities) ? court.amenities.join(", ") : "",
+      hourlyRate: court.hourlyRate || 500,
+      description: court.description || "",
+    });
+  };
+
+  const handleCancelForm = () => {
+    setShowForm(false);
+    setEditingCourtId(null);
+    setExistingImages([]);
+    setRemovedImages([]);
+    setSelectedImages([]);
+    setFormData({
+      name: "",
+      location: "",
+      address: "",
+      courtNumber: "",
+      surface: "synthetic",
+      capacity: 4,
+      amenities: "",
+      hourlyRate: 500,
+      description: "",
+    });
+  };
+
+  const toggleImageForRemoval = (imageUrl) => {
+    setRemovedImages((prev) =>
+      prev.includes(imageUrl)
+        ? prev.filter((url) => url !== imageUrl)
+        : [...prev, imageUrl],
+    );
   };
 
   const handleDelete = async (courtId) => {
@@ -117,7 +191,13 @@ export const ManageCourts = () => {
         <h1>Manage Courts</h1>
         <button
           className="btn btn-primary"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            if (showForm) {
+              handleCancelForm();
+            } else {
+              setShowForm(true);
+            }
+          }}
         >
           <FaPlus /> {showForm ? "Hide Form" : "Create New Court"}
         </button>
@@ -128,7 +208,9 @@ export const ManageCourts = () => {
       {/* Create Court Form */}
       {showForm && (
         <div className="card" style={{ marginBottom: "30px" }}>
-          <h3 style={{ marginBottom: "20px" }}>Create New Court</h3>
+          <h3 style={{ marginBottom: "20px" }}>
+            {editingCourtId ? "Edit Court" : "Create New Court"}
+          </h3>
           <form onSubmit={handleSubmit}>
             <div className="form-row">
               <div className="form-group">
@@ -250,13 +332,67 @@ export const ManageCourts = () => {
               ></textarea>
             </div>
 
-            <button
-              type="submit"
-              className="btn btn-success"
-              style={{ width: "100%" }}
-            >
-              Create Court
-            </button>
+            <div className="form-group">
+              <label>
+                {editingCourtId
+                  ? "Add More Court Images (optional)"
+                  : "Court Images (multiple)"}
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageSelection}
+              />
+              {selectedImages.length > 0 && (
+                <p style={{ marginTop: "8px", color: "var(--light-text)" }}>
+                  {selectedImages.length} image(s) selected
+                </p>
+              )}
+            </div>
+
+            {editingCourtId && existingImages.length > 0 && (
+              <div className="form-group">
+                <label>Existing Images (click to remove)</label>
+                <div className="image-edit-grid">
+                  {existingImages.map((image, index) => {
+                    const markedForRemoval = removedImages.includes(image);
+
+                    return (
+                      <button
+                        key={`${image}-${index}`}
+                        type="button"
+                        className={`image-edit-item ${markedForRemoval ? "marked" : ""}`}
+                        onClick={() => toggleImageForRemoval(image)}
+                      >
+                        <img src={image} alt={`Court ${index + 1}`} />
+                        <span>{markedForRemoval ? "Will be removed" : "Keep"}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                type="submit"
+                className="btn btn-success"
+                style={{ width: "100%" }}
+              >
+                {editingCourtId ? "Update Court" : "Create Court"}
+              </button>
+              {editingCourtId && (
+                <button
+                  type="button"
+                  className="btn btn-edit"
+                  onClick={handleCancelForm}
+                  style={{ width: "100%" }}
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </div>
           </form>
         </div>
       )}
@@ -307,10 +443,25 @@ export const ManageCourts = () => {
                     <strong>Description:</strong> {court.description}
                   </p>
                 )}
+                {court.images && court.images.length > 0 && (
+                  <div style={{ marginTop: "12px" }}>
+                    <strong>Images:</strong>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "8px" }}>
+                      {court.images.slice(0, 4).map((image, index) => (
+                        <img
+                          key={`${court._id}-image-${index}`}
+                          src={image}
+                          alt={`${court.name} ${index + 1}`}
+                          style={{ width: "72px", height: "72px", objectFit: "cover", borderRadius: "8px" }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="court-actions">
-                <button className="btn btn-edit" disabled>
+                <button className="btn btn-edit" onClick={() => handleEdit(court)}>
                   <FaEdit /> Edit
                 </button>
                 <button

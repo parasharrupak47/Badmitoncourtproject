@@ -54,6 +54,16 @@ export const usersAPI = {
   getAllUsers: () => api.get("/users"),
   getUser: (id) => api.get(`/users/${id}`),
   updateUserProfile: (id, userData) => api.put(`/users/${id}`, userData),
+  uploadProfileImage: (id, file) => {
+    const formData = new FormData();
+    formData.append("profileImage", file);
+
+    return api.put(`/users/${id}/profile-image`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
   getUserStats: (id) => api.get(`/users/${id}/stats`),
   updateMatchResult: (id, results) =>
     api.put(`/users/${id}/match-result`, results),
@@ -71,8 +81,28 @@ export const statsAPI = {
 export const courtsAPI = {
   getAllCourts: () => api.get("/courts"),
   getCourt: (id) => api.get(`/courts/${id}`),
-  createCourt: (courtData) => api.post("/courts", courtData),
-  updateCourt: (id, courtData) => api.put(`/courts/${id}`, courtData),
+  createCourt: (courtData) => {
+    if (courtData instanceof FormData) {
+      return api.post("/courts", courtData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    }
+
+    return api.post("/courts", courtData);
+  },
+  updateCourt: (id, courtData) => {
+    if (courtData instanceof FormData) {
+      return api.put(`/courts/${id}`, courtData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    }
+
+    return api.put(`/courts/${id}`, courtData);
+  },
   deactivateCourt: (id) => api.delete(`/courts/${id}`),
 };
 

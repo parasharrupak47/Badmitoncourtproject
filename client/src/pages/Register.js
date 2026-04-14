@@ -67,7 +67,7 @@ export const Register = () => {
             size={40}
             style={{ color: "var(--primary-color)", marginBottom: "15px" }}
           />
-          <h1 style={{ marginBottom: "10px" }}>Join BadmintonHub!</h1>
+          <h1 style={{ marginBottom: "10px" }}>Join SmashSlot!</h1>
           <p style={{ color: "var(--light-text)" }}>
             Create your account to start booking courts
           </p>

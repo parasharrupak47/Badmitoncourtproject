@@ -7,11 +7,14 @@ const {
 
 const router = express.Router();
 
+const getMaxPlayersByGameType = (gameType) =>
+  gameType === "singles" ? 2 : 4;
+
 // Get all available slots
 router.get("/available", async (req, res) => {
   try {
     const { date, gameType, duration } = req.query;
-    const filter = { isAvailable: true };
+    const filter = { isAvailable: true, bookingMode: "public" };
 
     if (date) {
       const startDate = new Date(date);
@@ -70,8 +73,9 @@ router.post("/", staffMiddleware, async (req, res) => {
       duration,
       gameType,
       pricePerSlot,
-      maxPlayers,
     } = req.body;
+
+    const maxPlayers = getMaxPlayersByGameType(gameType);
 
     const slot = new Slot({
       court,
@@ -83,6 +87,8 @@ router.post("/", staffMiddleware, async (req, res) => {
       pricePerSlot,
       maxPlayers,
       isAvailable: true,
+      bookingMode: "public",
+      inviteHost: null,
     });
 
     await slot.save();
@@ -97,7 +103,12 @@ router.post("/", staffMiddleware, async (req, res) => {
 // Update slot (staff only)
 router.put("/:id", staffMiddleware, async (req, res) => {
   try {
-    const slot = await Slot.findByIdAndUpdate(req.params.id, req.body, {
+    const updates = { ...req.body };
+    if (updates.gameType) {
+      updates.maxPlayers = getMaxPlayersByGameType(updates.gameType);
+    }
+
+    const slot = await Slot.findByIdAndUpdate(req.params.id, updates, {
       new: true,
     }).populate("court");
     if (!slot) {

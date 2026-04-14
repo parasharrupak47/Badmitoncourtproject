@@ -22,6 +22,24 @@ export const ManageSlots = () => {
     maxPlayers: 2,
   });
 
+  const getMaxPlayersByGameType = (gameType) =>
+    gameType === "singles" ? 2 : 4;
+
+  const addMinutesToTime = (time, minutesToAdd) => {
+    if (!time || !minutesToAdd) {
+      return "";
+    }
+
+    const [hourStr, minuteStr] = time.split(":");
+    const totalMinutes = parseInt(hourStr, 10) * 60 + parseInt(minuteStr, 10);
+    const updatedMinutes = totalMinutes + Number(minutesToAdd);
+    const normalized = ((updatedMinutes % (24 * 60)) + 24 * 60) % (24 * 60);
+
+    const hh = String(Math.floor(normalized / 60)).padStart(2, "0");
+    const mm = String(normalized % 60).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
   useEffect(() => {
     fetchSlotsAndCourts();
   }, []);
@@ -46,10 +64,27 @@ export const ManageSlots = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
+
+    const updatedForm = {
       ...formData,
-      [name]: name === "duration" ? parseInt(value) : value,
-    });
+      [name]:
+        name === "duration" || name === "pricePerSlot"
+          ? parseInt(value, 10) || ""
+          : value,
+    };
+
+    if (name === "gameType") {
+      updatedForm.maxPlayers = getMaxPlayersByGameType(value);
+    }
+
+    if (name === "startTime" || name === "duration") {
+      updatedForm.endTime = addMinutesToTime(
+        name === "startTime" ? value : updatedForm.startTime,
+        updatedForm.duration,
+      );
+    }
+
+    setFormData(updatedForm);
   };
 
   const handleSubmit = async (e) => {
@@ -156,30 +191,6 @@ export const ManageSlots = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Start Time</label>
-                <input
-                  type="time"
-                  name="startTime"
-                  value={formData.startTime}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>End Time</label>
-                <input
-                  type="time"
-                  name="endTime"
-                  value={formData.endTime}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
                 <label>Duration (minutes)</label>
                 <select
                   name="duration"
@@ -193,6 +204,30 @@ export const ManageSlots = () => {
                   <option value="60">60 minutes</option>
                   <option value="90">90 minutes</option>
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label>Start Time</label>
+                <input
+                  type="time"
+                  name="startTime"
+                  value={formData.startTime}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>End Time (auto-calculated)</label>
+                <input
+                  type="time"
+                  name="endTime"
+                  value={formData.endTime}
+                  required
+                  readOnly
+                />
               </div>
 
               <div className="form-group">
@@ -222,13 +257,13 @@ export const ManageSlots = () => {
               </div>
 
               <div className="form-group">
-                <label>Max Players</label>
+                <label>Max Players (fixed by game type)</label>
                 <input
                   type="number"
                   name="maxPlayers"
                   value={formData.maxPlayers}
-                  onChange={handleChange}
                   required
+                  readOnly
                 />
               </div>
             </div>

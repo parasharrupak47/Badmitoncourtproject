@@ -183,6 +183,12 @@ export const MyBookings = () => {
                     ₹{booking.price}
                   </span>
                 </div>
+                {booking.slot && (
+                  <div style={{ marginTop: "8px" }}>
+                    <strong>Joined Players:</strong>{" "}
+                    {(booking.slot.bookedPlayers?.length || 0)}/{booking.slot.maxPlayers || 0}
+                  </div>
+                )}
               </div>
 
               <div style={{ display: "flex", gap: "10px" }}>

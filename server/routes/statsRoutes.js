@@ -80,7 +80,7 @@ router.get("/user/:id", async (req, res) => {
 
     const monthlyBookings = await Booking.aggregate([
       {
-        $match: { user: require("mongoose").Types.ObjectId(req.params.id) },
+        $match: { user: user._id },
       },
       {
         $group: {

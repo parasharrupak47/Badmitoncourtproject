@@ -4,8 +4,6 @@ import { AuthContext } from "../context/AuthContext";
 import {
   FaSignOutAlt,
   FaUser,
-  FaCalendar,
-  FaChartBar,
   FaBell,
 } from "react-icons/fa";
 import { GiShuttlecock } from "react-icons/gi";
@@ -44,7 +42,7 @@ export const Navbar = () => {
       <div className="navbar-container">
         <Link to="/" className="navbar-logo">
           <GiShuttlecock size={28} />
-          <span>BadmintonHub</span>
+          <span>SmashSlot</span>
         </Link>
 
         <ul className="navbar-menu">
@@ -71,9 +69,6 @@ export const Navbar = () => {
                       )}
                     </Link>
                   </li>
-                  <li>
-                    <Link to="/find-partner">Find Partner</Link>
-                  </li>
                 </>
               )}
               {(user.role === "staff" || user.role === "admin") && (
@@ -95,7 +90,7 @@ export const Navbar = () => {
                 </Link>
               </li>
               <li>
-                <button onClick={handleLogout}>
+                <button onClick={handleLogout} className="logout-btn">
                   <FaSignOutAlt /> Logout
                 </button>
               </li>

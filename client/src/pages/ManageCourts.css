@@ -255,6 +255,40 @@ h1 {
   font-size: 12px;
 }
 
+.image-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.image-edit-item {
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px;
+  background: white;
+  cursor: pointer;
+  text-align: center;
+}
+
+.image-edit-item img {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.image-edit-item span {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--secondary-text-color);
+}
+
+.image-edit-item.marked {
+  border-color: #f44336;
+  background: #ffebee;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .form-row {

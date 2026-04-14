@@ -1,9 +1,112 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FaTimes } from "react-icons/fa";
+import { usersAPI } from "../services/api";
 import "./BookingDetailsModal.css";
 
 export const BookingDetailsModal = ({ booking, onClose }) => {
-  if (!booking) return null;
+  const [fetchedPlayers, setFetchedPlayers] = useState({});
+
+  const extractId = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "object") {
+      if (value._id) return value._id.toString();
+      if (value.id) return value.id.toString();
+      if (typeof value.toString === "function") {
+        const possibleId = value.toString();
+        if (possibleId && possibleId !== "[object Object]") {
+          return possibleId;
+        }
+      }
+    }
+    return "";
+  };
+
+  const knownPlayers = useMemo(
+    () =>
+      [booking?.user, booking?.partner, ...(booking?.partners || [])]
+        .filter(Boolean)
+        .reduce((acc, player) => {
+          const id = extractId(player);
+          if (id) {
+            acc[id] = player;
+          }
+          return acc;
+        }, {}),
+    [booking?.user, booking?.partner, booking?.partners],
+  );
+
+  const missingPlayerIds = useMemo(
+    () =>
+      (booking.slot?.bookedPlayers || [])
+        .map((player) => {
+          if (player && typeof player === "object" && player.name) {
+            return "";
+          }
+          const id = extractId(player);
+          return id && !knownPlayers[id] ? id : "";
+        })
+        .filter(Boolean),
+    [booking?.slot?.bookedPlayers, knownPlayers],
+  );
+
+  useEffect(() => {
+    if (missingPlayerIds.length === 0) {
+      return;
+    }
+
+    let active = true;
+
+    const loadMissingPlayers = async () => {
+      try {
+        const uniqueIds = [...new Set(missingPlayerIds)];
+        const results = await Promise.all(
+          uniqueIds.map(async (id) => {
+            try {
+              const res = await usersAPI.getUser(id);
+              return [id, res.data];
+            } catch (_error) {
+              return [id, null];
+            }
+          }),
+        );
+
+        if (!active) return;
+
+        const nextPlayers = {};
+        results.forEach(([id, player]) => {
+          if (player) {
+            nextPlayers[id] = player;
+          }
+        });
+        setFetchedPlayers(nextPlayers);
+      } catch (_error) {
+        if (active) {
+          setFetchedPlayers({});
+        }
+      }
+    };
+
+    loadMissingPlayers();
+
+    return () => {
+      active = false;
+    };
+  }, [missingPlayerIds]);
+
+  const joinedPlayers = (booking?.slot?.bookedPlayers || []).map((player, index) => {
+    if (player && typeof player === "object" && (player.name || player.profileImage || player.level)) {
+      return player;
+    }
+
+    const id = extractId(player);
+
+    return knownPlayers[id] || fetchedPlayers[id] || {
+      _id: id || `unknown-${index}`,
+      name: "Unknown Player",
+      level: "beginner",
+    };
+  });
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -28,6 +131,8 @@ export const BookingDetailsModal = ({ booking, onClose }) => {
         return "#757575";
     }
   };
+
+  if (!booking) return null;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -137,6 +242,41 @@ export const BookingDetailsModal = ({ booking, onClose }) => {
               </div>
             </div>
           )}
+
+          {/* Slot Participants */}
+          <div className="detail-section">
+            <h3>
+              Players Joined ({joinedPlayers.length}
+              {booking.slot?.maxPlayers ? `/${booking.slot.maxPlayers}` : ""})
+            </h3>
+            {joinedPlayers.length === 0 ? (
+              <p className="partner-level" style={{ margin: 0 }}>
+                No players have joined yet.
+              </p>
+            ) : (
+              <div className="participants-list">
+                {joinedPlayers.map((player) => (
+                  <div key={player._id} className="participant-item">
+                    {player.profileImage ? (
+                      <img
+                        src={player.profileImage}
+                        alt={player.name}
+                        className="participant-avatar"
+                      />
+                    ) : (
+                      <div className="participant-avatar fallback-avatar">
+                        {player.name?.charAt(0)?.toUpperCase() || "U"}
+                      </div>
+                    )}
+                    <div className="participant-info">
+                      <strong>{player.name}</strong>
+                      <p>Level: {player.level || "beginner"}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Status */}
           <div className="detail-section">

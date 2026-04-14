@@ -22,6 +22,16 @@ const slotSchema = new mongoose.Schema(
     },
     pricePerSlot: { type: Number, required: true },
     isAvailable: { type: Boolean, default: true },
+    bookingMode: {
+      type: String,
+      enum: ["public", "invite_only"],
+      default: "public",
+    },
+    inviteHost: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     maxPlayers: { type: Number, required: true }, // 2 for singles, 4 for doubles
     bookedPlayers: [
       {

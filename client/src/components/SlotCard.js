@@ -4,6 +4,7 @@ import { FaRupeeSign, FaUsers, FaClock } from "react-icons/fa";
 export const SlotCard = ({ slot, onBook }) => {
   const isAvailable = slot.isAvailable;
   const availableSpots = slot.maxPlayers - (slot.bookedPlayers?.length || 0);
+  const courtImage = slot.court?.images?.[0];
 
   const gameTypeLabel = {
     singles: "🎾 Singles",
@@ -13,6 +14,24 @@ export const SlotCard = ({ slot, onBook }) => {
 
   return (
     <div className="slot-card">
+      {courtImage ? (
+        <img
+          src={courtImage}
+          alt={`${slot.court?.name || "Court"} preview`}
+          style={{
+            width: "100%",
+            height: "140px",
+            objectFit: "cover",
+            borderRadius: "10px",
+            marginBottom: "12px",
+          }}
+        />
+      ) : null}
+
+      <div style={{ marginBottom: "8px", color: "var(--light-text)", fontSize: "0.9rem" }}>
+        {slot.court?.name || "Court"}
+      </div>
+
       <div className="slot-type">{gameTypeLabel[slot.gameType]}</div>
 
       <div className="slot-time">

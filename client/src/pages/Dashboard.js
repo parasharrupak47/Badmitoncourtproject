@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { bookingsAPI, statsAPI } from "../services/api";
-import { FaCalendar, FaUsers, FaTrophy, FaChartBar } from "react-icons/fa";
+import { FaCalendar, FaTrophy, FaChartBar } from "react-icons/fa";
 
 export const Dashboard = () => {
   const { user } = useContext(AuthContext);
@@ -95,27 +95,6 @@ export const Dashboard = () => {
                 <h4>Book a Slot</h4>
                 <p style={{ color: "var(--light-text)" }}>
                   Find and reserve your court
-                </p>
-              </div>
-            </Link>
-
-            <Link
-              to="/find-partner"
-              className="card"
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-                cursor: "pointer",
-              }}
-            >
-              <div style={{ textAlign: "center" }}>
-                <FaUsers
-                  size={40}
-                  style={{ color: "var(--accent-color)", marginBottom: "15px" }}
-                />
-                <h4>Find Partner</h4>
-                <p style={{ color: "var(--light-text)" }}>
-                  Connect with other players
                 </p>
               </div>
             </Link>

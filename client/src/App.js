@@ -18,7 +18,6 @@ import MyBookings from "./pages/MyBookings";
 import UserProfile from "./pages/UserProfile";
 import ManageSlots from "./pages/ManageSlots";
 import ManageCourts from "./pages/ManageCourts";
-import FindPartner from "./pages/FindPartner";
 import StaffUsers from "./pages/StaffUsers";
 import StaffBookings from "./pages/StaffBookings";
 import Invitations from "./pages/Invitations";
@@ -120,14 +119,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <UserProfile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/find-partner"
-            element={
-              <ProtectedRoute>
-                <FindPartner />
               </ProtectedRoute>
             }
           />
