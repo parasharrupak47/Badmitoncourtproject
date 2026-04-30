@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import React, { useState, useEffect } from "react";
 import { bookingsAPI } from "../services/api";
 import BookingDetailsModal from "../components/BookingDetailsModal";
 import { FaCalendar, FaTrash, FaCheckCircle } from "react-icons/fa";
 
 export const MyBookings = () => {
-  const { user } = useContext(AuthContext);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -186,7 +184,8 @@ export const MyBookings = () => {
                 {booking.slot && (
                   <div style={{ marginTop: "8px" }}>
                     <strong>Joined Players:</strong>{" "}
-                    {(booking.slot.bookedPlayers?.length || 0)}/{booking.slot.maxPlayers || 0}
+                    {booking.slot.bookedPlayers?.length || 0}/
+                    {booking.slot.maxPlayers || 0}
                   </div>
                 )}
               </div>

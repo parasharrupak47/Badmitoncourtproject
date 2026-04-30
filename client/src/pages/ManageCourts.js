@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import React, { useState, useEffect } from "react";
 import { courtsAPI } from "../services/api";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import "./ManageCourts.css";
 
 export const ManageCourts = () => {
-  const { user } = useContext(AuthContext);
   const [courts, setCourts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -81,7 +79,11 @@ export const ManageCourts = () => {
       }
 
       setError("");
-      alert(editingCourtId ? "Court updated successfully!" : "Court created successfully!");
+      alert(
+        editingCourtId
+          ? "Court updated successfully!"
+          : "Court created successfully!",
+      );
       setShowForm(false);
       setEditingCourtId(null);
       setExistingImages([]);
@@ -122,7 +124,9 @@ export const ManageCourts = () => {
       courtNumber: court.courtNumber || "",
       surface: court.surface || "synthetic",
       capacity: court.capacity || 4,
-      amenities: Array.isArray(court.amenities) ? court.amenities.join(", ") : "",
+      amenities: Array.isArray(court.amenities)
+        ? court.amenities.join(", ")
+        : "",
       hourlyRate: court.hourlyRate || 500,
       description: court.description || "",
     });
@@ -366,7 +370,9 @@ export const ManageCourts = () => {
                         onClick={() => toggleImageForRemoval(image)}
                       >
                         <img src={image} alt={`Court ${index + 1}`} />
-                        <span>{markedForRemoval ? "Will be removed" : "Keep"}</span>
+                        <span>
+                          {markedForRemoval ? "Will be removed" : "Keep"}
+                        </span>
                       </button>
                     );
                   })}
@@ -446,13 +452,25 @@ export const ManageCourts = () => {
                 {court.images && court.images.length > 0 && (
                   <div style={{ marginTop: "12px" }}>
                     <strong>Images:</strong>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "8px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        flexWrap: "wrap",
+                        marginTop: "8px",
+                      }}
+                    >
                       {court.images.slice(0, 4).map((image, index) => (
                         <img
                           key={`${court._id}-image-${index}`}
                           src={image}
                           alt={`${court.name} ${index + 1}`}
-                          style={{ width: "72px", height: "72px", objectFit: "cover", borderRadius: "8px" }}
+                          style={{
+                            width: "72px",
+                            height: "72px",
+                            objectFit: "cover",
+                            borderRadius: "8px",
+                          }}
                         />
                       ))}
                     </div>
@@ -461,7 +479,10 @@ export const ManageCourts = () => {
               </div>
 
               <div className="court-actions">
-                <button className="btn btn-edit" onClick={() => handleEdit(court)}>
+                <button
+                  className="btn btn-edit"
+                  onClick={() => handleEdit(court)}
+                >
                   <FaEdit /> Edit
                 </button>
                 <button

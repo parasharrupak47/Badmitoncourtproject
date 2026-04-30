@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import {  FaCalendar, FaUsers, FaTrophy } from "react-icons/fa";
+import { FaCalendar, FaUsers, FaTrophy } from "react-icons/fa";
 import { GiShuttlecock } from "react-icons/gi";
 
 export const Home = () => {
@@ -172,15 +172,48 @@ export const Home = () => {
               gap: "20px",
             }}
           >
-            <a href="#" style={{ color: "white", textDecoration: "none" }}>
+            <button
+              type="button"
+              style={{
+                color: "white",
+                textDecoration: "none",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+                font: "inherit",
+              }}
+            >
               Privacy Policy
-            </a>
-            <a href="#" style={{ color: "white", textDecoration: "none" }}>
+            </button>
+            <button
+              type="button"
+              style={{
+                color: "white",
+                textDecoration: "none",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+                font: "inherit",
+              }}
+            >
               Terms of Service
-            </a>
-            <a href="#" style={{ color: "white", textDecoration: "none" }}>
+            </button>
+            <button
+              type="button"
+              style={{
+                color: "white",
+                textDecoration: "none",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+                font: "inherit",
+              }}
+            >
               Contact Us
-            </a>
+            </button>
           </div>
         </div>
       </footer>

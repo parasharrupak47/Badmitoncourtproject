@@ -1,15 +1,12 @@
-import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import React, { useState, useEffect } from "react";
 import { invitationsAPI } from "../services/api";
 import { FaBell, FaCheckCircle, FaTimesCircle, FaClock } from "react-icons/fa";
 import "./Invitations.css";
 
 export const Invitations = () => {
-  const { user } = useContext(AuthContext);
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState("received");
 
   useEffect(() => {
     fetchInvitations();

@@ -6,27 +6,71 @@ BadmintonHub is a full-stack web application for booking badminton courts, findi
 
 ### Player Features
 
+- **User Authentication**: Secure login and registration with JWT tokens
 - **Slot Booking**: Browse and book available court slots
   - Singles, Doubles, and Mixed Doubles games
   - Flexible durations (30, 45, 60, 90+ minutes)
   - Different price ranges
+  - Real-time availability checking
 - **Find Partners**: Discover nearby players at your skill level
+  - Search filters by location, skill level, and availability
+  - View player profiles and statistics
+- **Invitations System**: Send and receive game invitations
+  - Invite players to join your bookings
+  - Accept/reject invitations with payment splitting
+  - Real-time notifications via bell icon
 - **Booking Management**: View, manage, and cancel bookings
-- **User Profiles**: Create and maintain your player profile with statistics
+  - Detailed booking history with modal views
+  - Cancel bookings with confirmation
+  - Track booking status (confirmed, completed, cancelled)
+- **User Profiles**: Create and maintain comprehensive player profiles
+  - Upload profile images
+  - Player levels and badges (Beginner, Intermediate, Advanced, Pro)
+  - Bio, contact information, and preferences
 - **Performance Tracking**: Monitor wins, matches played, and win rate
-- **Search Filters**: Filter slots by date, game type, and duration
+  - Detailed statistics dashboard
+  - Activity history and performance graphs
+- **Search & Filters**: Advanced filtering for slots and partners
+  - Filter by date, game type, duration, and location
 
 ### Staff Features
 
+- **Court Management**: Add, edit, and manage badminton courts
+  - Upload court images and descriptions
+  - Set amenities, surface types, and pricing
+  - Location and address management
 - **Slot Management**: Create, edit, and delete court slots
-- **User Management**: View all players and their profiles
-- **Player Statistics**: Track wins, matches, and performance metrics
-- **Dashboard**: View bookings, revenue, and player rankings
-- **Analytics**: Track booking trends and revenue
+  - Set pricing, duration, and game types
+  - Manage availability and capacity
+- **User Management**: View and manage all player accounts
+  - Update user roles and permissions
+  - View detailed user profiles and statistics
+  - Ban/unban users if needed
+- **Booking Oversight**: Monitor and manage all bookings
+  - View all bookings across the system
+  - Update booking statuses
+  - Handle booking conflicts
+- **Dashboard Analytics**: Comprehensive statistics and insights
+  - Total users, bookings, and revenue tracking
+  - Booking trends and performance metrics
+  - Player rankings and leaderboards
 
 ### Admin Features
 
 - All staff features plus additional administrative controls
+- System-wide user role management
+- Advanced analytics and reporting
+- System configuration and maintenance
+
+### Additional Features
+
+- **Payment Splitting**: Automatic payment distribution for group bookings
+- **Responsive Design**: Mobile-first design that works on all devices
+- **Real-time Updates**: Live availability and booking status updates
+- **Secure Authentication**: Role-based access control with protected routes
+- **Image Upload**: Support for court and profile image uploads
+- **Error Handling**: Comprehensive error messages and validation
+- **Modern UI/UX**: Clean, intuitive interface with smooth animations
 
 ## Project Structure
 
@@ -149,6 +193,14 @@ Application will open at `http://localhost:3000`
 - `POST /api/auth/login` - Login user
 - `GET /api/auth/me` - Get current user (protected)
 
+### Courts
+
+- `GET /api/courts` - Get all courts
+- `GET /api/courts/:id` - Get court details
+- `POST /api/courts` - Create new court (staff/admin only)
+- `PUT /api/courts/:id` - Update court (staff/admin only)
+- `DELETE /api/courts/:id` - Delete court (staff/admin only)
+
 ### Slots
 
 - `GET /api/slots/available` - Get available slots
@@ -163,6 +215,14 @@ Application will open at `http://localhost:3000`
 - `GET /api/bookings` - Get all bookings (staff only)
 - `POST /api/bookings` - Create booking (protected)
 - `PUT /api/bookings/:id/cancel` - Cancel booking (protected)
+- `GET /api/bookings/:id` - Get booking details (protected)
+
+### Invitations
+
+- `GET /api/invitations/pending` - Get pending invitations (protected)
+- `POST /api/invitations` - Send invitation (protected)
+- `PUT /api/invitations/:id/accept` - Accept invitation (protected)
+- `PUT /api/invitations/:id/reject` - Reject invitation (protected)
 
 ### Users
 
@@ -171,6 +231,7 @@ Application will open at `http://localhost:3000`
 - `PUT /api/users/:id` - Update user profile (protected)
 - `GET /api/users/:id/stats` - Get user statistics
 - `GET /api/users/search/nearby` - Find nearby players (protected)
+- `POST /api/users/:id/upload-image` - Upload profile image (protected)
 
 ### Statistics
 
@@ -199,34 +260,46 @@ Application will open at `http://localhost:3000`
 
 - Basic info (name, email, phone, gender)
 - Authentication (password hash)
-- Role-based access
-- Gaming info (level, wins, matches played)
-- Preferences (duration, time slots)
+- Role-based access (player, staff, admin)
+- Gaming info (level, wins, matches played, win rate)
+- Preferences (preferred duration, time slots)
+- Profile image URL
+
+### Court
+
+- Location and address details
+- Surface type (synthetic, wood, etc.)
+- Amenities (lights, showers, parking)
+- Pricing information
+- Images and description
+- Capacity and court number
 
 ### Slot
 
 - Court reference
-- Date and time
-- Duration and game type
-- Pricing
+- Date and time (start/end)
+- Duration and game type (singles/doubles)
+- Pricing per slot
+- Maximum players
 - Availability status
 - Booked players list
 
 ### Booking
 
-- User and partners
+- User and partner references
 - Slot information
-- Game details
-- Payment status
-- Match outcome
+- Game details and outcome
+- Payment status and split amounts
+- Booking status (confirmed, completed, cancelled)
+- Creation and update timestamps
 
-### Court
+### Invitation
 
-- Location and address
-- Surface type
-- Amenities
-- Pricing
-- Images and description
+- Sender and receiver user references
+- Associated booking
+- Status (pending, accepted, rejected)
+- Message content
+- Creation timestamp
 
 ## Authentication
 

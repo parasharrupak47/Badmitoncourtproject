@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import React, { useState, useEffect } from "react";
 import { slotsAPI, courtsAPI } from "../services/api";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import "./ManageSlots.css";
 
 export const ManageSlots = () => {
-  const { user } = useContext(AuthContext);
   const [slots, setSlots] = useState([]);
   const [courts, setCourts] = useState([]);
   const [loading, setLoading] = useState(true);
